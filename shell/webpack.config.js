@@ -39,10 +39,10 @@ module.exports = {
     new ModuleFederationPlugin({
       name: "shell",
       filename: "remoteEntry.js",
-      remotes: {},
-      exposes: {
-        "./App": "./src/App",
+      remotes: {
+        app1: "app1@http://localhost:8081/remoteEntry.js",
       },
+      exposes: {},
       shared: {
         ...deps,
         react: {
