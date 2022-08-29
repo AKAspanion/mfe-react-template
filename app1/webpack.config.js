@@ -5,7 +5,7 @@ const deps = require("./package.json").dependencies;
 
 module.exports = {
   output: {
-    publicPath: "auto",
+    publicPath: "http://localhost:8081/",
   },
   resolve: {
     extensions: [".tsx", ".ts", ".jsx", ".js", ".json"],
@@ -42,6 +42,7 @@ module.exports = {
       remotes: {},
       exposes: {
         "./App": "./src/App",
+        "./Bootstrap": "./src/bootstrap",
       },
       shared: {
         ...deps,

@@ -2,16 +2,17 @@ import React, { Suspense, useState } from "react";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import { StoreShape } from "../../@types/shared-store";
 import { changeAppNameAction } from "./reducer";
+import { Router } from "./routing/router";
 
 import { store } from "./store";
 
 const App1 = React.lazy(() => import("app1/App"));
 
-const AppWithStore = () => (
+const AppWithRoute = () => (
   <Provider store={store}>
     <App />
     <Suspense fallback={<div>Loading...</div>}>
-      <App1 store={store} />
+      <Router />
     </Suspense>
   </Provider>
 );
@@ -53,4 +54,6 @@ const App = () => {
   );
 };
 
-export default AppWithStore;
+export default AppWithRoute;
+
+AppWithRoute.displayName = "Shell";

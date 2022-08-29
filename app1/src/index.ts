@@ -1,9 +1,11 @@
+import { createBrowserHistory, Update } from "history";
+
 import("./bootstrap").then(({ mount }) => {
   const localRoot = document.getElementById("app1-root");
+  const browserHistory = createBrowserHistory();
 
-  if (localRoot) {
-    mount({ mountPoint: localRoot! });
-  }
+  mount({
+    mountPoint: localRoot!,
+    historyStrategy: browserHistory,
+  });
 });
-
-export {};

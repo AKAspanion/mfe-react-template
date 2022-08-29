@@ -2,6 +2,12 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import {
+  Route,
+  Routes,
+  unstable_HistoryRouter as HistoryRouter,
+} from "react-router-dom";
+
+import {
   applyMiddleware,
   createStore,
   compose,
@@ -9,11 +15,71 @@ import {
   StoreEnhancer,
 } from "redux";
 import thunk from "redux-thunk";
+import { HistoryStrategy } from "../../@types/shared-route";
 import { ShellStore, StoreShape } from "../../@types/shared-store";
+import { Page1 } from "./pages/Page1";
+import { Page2 } from "./pages/Page2";
 import { changeAppNameAction, reducers } from "./reducer";
 
-const AppWithStore: React.FC<{ store?: ShellStore }> = (props) => {
-  const { store } = props;
+const remoteAppScope = "app1";
+
+export declare type AppProps = {
+  history: HistoryStrategy;
+  store?: ShellStore;
+  children?: React.ReactNode;
+};
+
+const AppDefault: React.FC<AppProps> = (props) => {
+  return <AppWithRoute {...props} />;
+};
+
+const AppWithRoute: React.FC<AppProps> = (props) => {
+  const { history } = props;
+
+  useEffect(() => {
+    const unlistenHistoryChanges = history.listen(
+      ({ location: { pathname } }) => {
+        window.dispatchEvent(
+          new CustomEvent("[app1] navigated", { detail: pathname })
+        );
+      }
+    );
+
+    const shellNavigationHandler = (event: Event) => {
+      const pathname = (event as CustomEvent<string>).detail;
+      const { pathname: currentPathname } = history.location;
+      if (currentPathname === pathname) {
+        return;
+      }
+      history.push(pathname);
+    };
+
+    window.addEventListener("[shell] navigated", shellNavigationHandler);
+
+    return () => {
+      window.removeEventListener("[shell] navigated", shellNavigationHandler);
+      unlistenHistoryChanges();
+    };
+  }, [history]);
+
+  return (
+    <AppWithStore {...props}>
+      <div style={{ border: "1px solid red", padding: 16, margin: 16 }}>
+        <h3 style={{ marginBottom: "10px" }}>RemoteApp's router</h3>
+        <HistoryRouter history={history}>
+          <Routes>
+            <Route index element={<Page1 />} />
+            <Route path="page-1" element={<Page1 />} />
+            <Route path="page-2" element={<Page2 />} />
+          </Routes>
+        </HistoryRouter>
+      </div>
+    </AppWithStore>
+  );
+};
+
+const AppWithStore: React.FC<AppProps> = (props) => {
+  const { store, children } = props;
 
   useEffect(() => {
     if (store) {
@@ -39,11 +105,10 @@ const AppWithStore: React.FC<{ store?: ShellStore }> = (props) => {
   return (
     <Provider store={store || getLocalStore()}>
       <App />
+      {children}
     </Provider>
   );
 };
-
-const remoteAppScope = "app1";
 
 const App: React.FC = () => {
   const dispatch = useDispatch();
@@ -74,4 +139,6 @@ const App: React.FC = () => {
   );
 };
 
-export default AppWithStore;
+export default AppDefault;
+
+AppDefault.displayName = "App1";
